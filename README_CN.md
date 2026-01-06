@@ -15,6 +15,9 @@ RTCPilot 是一个使用现代 C++ 实现的开源 WebRTC SFU（Selective Forwar
 - `pilot_center/` — 使用 Python 编写的集群管理服务，负责 SFU 注册与信息转发。
 - `3rdparty/`, `win_3rdparty/` — 第三方依赖和平台相关构建辅助文件。
 
+## WebRTC JS 客户端
+- 浏览器端开源示例：[https://github.com/runner365/webrtc_js_client](https://github.com/runner365/webrtc_js_client)
+
 ## 支持的平台与构建方式
 ### Windows 11（Visual Studio）
 - 推荐：Visual Studio Community 2022（在 17.14.16 版本上有测试）。

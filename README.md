@@ -16,6 +16,9 @@ RTCPilot is an open-source WebRTC SFU (Selective Forwarding Unit) implemented in
 - `pilot_center/` — Python-based cluster management service. Handles SFU registration and information forwarding.
 - `3rdparty/`, `win_3rdparty/` — bundled third-party libraries and build helpers.
 
+## WebRTC JS client
+- Open-source browser demo client: [https://github.com/runner365/webrtc_js_client]https://github.com/runner365/webrtc_js_client
+
 ## Signaling (WebSocket / protoo)
 - RTCPilot uses a JSON-over-WebSocket signaling protocol (protoo-style). Main message types include:
 	- `join`: client joins a room and receives current users and their `pushers` (media streams).
