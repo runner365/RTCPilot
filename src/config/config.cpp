@@ -110,6 +110,48 @@ int Config::LoadConfig(const std::string& config_file) {
             }
         }
 
+        // RTMP server configuration
+        auto rtmp_node = config["rtmp_server"];
+        if (rtmp_node) {
+            if (rtmp_node["enable"]) {
+                rtmp_cfg_.enable_ = rtmp_node["enable"].as<bool>();
+            }
+            if (rtmp_node["listen_ip"]) {
+                rtmp_cfg_.listen_ip_ = rtmp_node["listen_ip"].as<std::string>();
+            }
+            if (rtmp_node["port"]) {
+                rtmp_cfg_.port_ = rtmp_node["port"].as<uint16_t>();
+            }
+        }
+
+        // HTTP-FLV server configuration
+        auto httpflv_node = config["httpflv_server"];
+        if (httpflv_node) {
+            if (httpflv_node["enable"]) {
+                httpflv_cfg_.enable_ = httpflv_node["enable"].as<bool>();
+            }
+            if (httpflv_node["listen_ip"]) {
+                httpflv_cfg_.listen_ip_ = httpflv_node["listen_ip"].as<std::string>();
+            }
+            if (httpflv_node["port"]) {
+                httpflv_cfg_.port_ = httpflv_node["port"].as<uint16_t>();
+            }
+        }
+
+        // WebSocket stream server configuration
+        auto ws_stream_node = config["ws_stream_server"];
+        if (ws_stream_node) {
+            if (ws_stream_node["enable"]) {
+                ws_stream_cfg_.enable_ = ws_stream_node["enable"].as<bool>();
+            }
+            if (ws_stream_node["listen_ip"]) {
+                ws_stream_cfg_.listen_ip_ = ws_stream_node["listen_ip"].as<std::string>();
+            }
+            if (ws_stream_node["port"]) {
+                ws_stream_cfg_.port_ = ws_stream_node["port"].as<uint16_t>();
+            }
+        }
+
 		ret = 0;
     } catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
@@ -154,7 +196,6 @@ std::string Config::Dump() {
         relay_cfg_.relay_udp_start_ == 0 || 
         relay_cfg_.relay_udp_end_ == 0) {
         dump_str += "rtc_relay: null\n";
-        return dump_str;
     } else {
         dump_str += "rtc_relay:\n";
         dump_str += "  relay_server_ip: " + relay_cfg_.relay_server_ip_ + "\n";
@@ -163,5 +204,24 @@ std::string Config::Dump() {
         dump_str += "  send_discard_percent: " + std::to_string(relay_cfg_.send_discard_percent_) + "\n";
         dump_str += "  recv_discard_percent: " + std::to_string(relay_cfg_.recv_discard_percent_) + "\n";
     }
+
+    // RTMP server configuration
+    dump_str += "rtmp_server:\n";
+    dump_str += "  enable: " + std::string(rtmp_cfg_.enable_ ? "true" : "false") + "\n";
+    dump_str += "  listen_ip: " + rtmp_cfg_.listen_ip_ + "\n";
+    dump_str += "  port: " + std::to_string(rtmp_cfg_.port_) + "\n";
+
+    // HTTP-FLV server configuration
+    dump_str += "httpflv_server:\n";
+    dump_str += "  enable: " + std::string(httpflv_cfg_.enable_ ? "true" : "false") + "\n";
+    dump_str += "  listen_ip: " + httpflv_cfg_.listen_ip_ + "\n";
+    dump_str += "  port: " + std::to_string(httpflv_cfg_.port_) + "\n";
+
+    // WebSocket stream server configuration
+    dump_str += "ws_stream_server:\n";
+    dump_str += "  enable: " + std::string(ws_stream_cfg_.enable_ ? "true" : "false") + "\n";
+    dump_str += "  listen_ip: " + ws_stream_cfg_.listen_ip_ + "\n";
+    dump_str += "  port: " + std::to_string(ws_stream_cfg_.port_) + "\n";
+
     return dump_str;
 }

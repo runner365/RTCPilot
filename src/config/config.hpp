@@ -53,6 +53,42 @@ public:
     uint32_t recv_discard_percent_ = 0;
 };
 
+class RtmpConfig
+{
+public:
+    RtmpConfig() = default;
+    ~RtmpConfig() = default;
+
+public:
+    bool        enable_ = true;
+    std::string listen_ip_ = "0.0.0.0";
+    uint16_t    port_ = 1935;
+};
+
+class HttpFlvConfig
+{
+public:
+    HttpFlvConfig() = default;
+    ~HttpFlvConfig() = default;
+
+public:
+    bool        enable_ = true;
+    std::string listen_ip_ = "0.0.0.0";
+    uint16_t    port_ = 8080;
+};
+
+class WsStreamConfig
+{
+public:
+    WsStreamConfig() = default;
+    ~WsStreamConfig() = default;
+
+public:
+    bool        enable_ = true;
+    std::string listen_ip_ = "0.0.0.0";
+    uint16_t    port_ = 8443;
+};
+
 class Config
 {
 public:
@@ -74,6 +110,11 @@ public:
     std::vector<RtcCandidate> rtc_candidates_;
     std::string cert_path_;
     std::string key_path_;
+
+public:
+    RtmpConfig     rtmp_cfg_;
+    HttpFlvConfig  httpflv_cfg_;
+    WsStreamConfig ws_stream_cfg_;
 
 public:
     PilotCenterConfig pilot_center_cfg_;

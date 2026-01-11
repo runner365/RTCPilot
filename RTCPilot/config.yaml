@@ -9,6 +9,24 @@ websocket_server:
   listen_ip: "0.0.0.0"
   port: 7443
 
+#rtmp server
+rtmp_server:
+  enable: true
+  listen_ip: "0.0.0.0"
+  port: 1935
+
+#http-flv server
+httpflv_server:
+  enable: true
+  listen_ip: "0.0.0.0"
+  port: 8080
+
+#websocket stream server (flv over websocket)
+ws_stream_server:
+  enable: true
+  listen_ip: "0.0.0.0"
+  port: 8443
+
 #webrtc
 #candidates: [{nettype, ip, port}]
 candidates:

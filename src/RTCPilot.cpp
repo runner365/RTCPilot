@@ -100,17 +100,37 @@ int main(int argc, char* argv[]) {
         LogInfof(logger.get(), "pilot center is disable.");
     }
     // Create and run the RTMP server
-    RtmpServer rtmp_server(loop, "0.0.0.0", 1935, logger.get());
-    LogInfof(logger.get(), "Starting RTMP server on 0.0.0.0:1935");
+    if (Config::Instance().rtmp_cfg_.enable_) {
+        RtmpServer rtmp_server(loop, Config::Instance().rtmp_cfg_.listen_ip_, Config::Instance().rtmp_cfg_.port_, logger.get());
+        LogInfof(logger.get(), "Starting RTMP server on %s:%d", 
+            Config::Instance().rtmp_cfg_.listen_ip_.c_str(), 
+            Config::Instance().rtmp_cfg_.port_);
+    } else {
+        LogInfof(logger.get(), "RTMP server is disabled");
+    }
 
-    HttpFlvServer httpflv_server(loop, "0.0.0.0", 8080, logger.get());
-    LogInfof(logger.get(), "Starting httpflv server on 0.0.0.0:8080");
+    // Create and run the HTTP-FLV server
+    if (Config::Instance().httpflv_cfg_.enable_) {
+        HttpFlvServer httpflv_server(loop, Config::Instance().httpflv_cfg_.listen_ip_, Config::Instance().httpflv_cfg_.port_, logger.get());
+        LogInfof(logger.get(), "Starting httpflv server on %s:%d", 
+            Config::Instance().httpflv_cfg_.listen_ip_.c_str(), 
+            Config::Instance().httpflv_cfg_.port_);
+    } else {
+        LogInfof(logger.get(), "HTTP-FLV server is disabled");
+    }
 
-    WsStreamServer ws_stream_server("0.0.0.0", 
-        8443, 
-        loop, 
-        logger.get());
-    LogInfof(logger.get(), "Starting ws_stream(flv) server on 0.0.0.0:8443");
+    // Create and run the WebSocket stream server
+    if (Config::Instance().ws_stream_cfg_.enable_) {
+        WsStreamServer ws_stream_server(Config::Instance().ws_stream_cfg_.listen_ip_, 
+            Config::Instance().ws_stream_cfg_.port_, 
+            loop, 
+            logger.get());
+        LogInfof(logger.get(), "Starting ws_stream(flv) server on %s:%d", 
+            Config::Instance().ws_stream_cfg_.listen_ip_.c_str(), 
+            Config::Instance().ws_stream_cfg_.port_);
+    } else {
+        LogInfof(logger.get(), "WebSocket stream server is disabled");
+    }
 
     WsMessageServer ws_message_server(Config::Instance().ws_listen_ip_, 
                             Config::Instance().ws_listen_port_, 
