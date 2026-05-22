@@ -1,0 +1,11 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/contracts/",
+    "@uniswap/v2-core/=lib/v2-core/contracts/",
+    "@uniswap/v2-periphery/=lib/v2-periphery/contracts/"
+]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
