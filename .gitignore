@@ -661,3 +661,17 @@ vocos-22khz-univ.onnx
 
 voice_agent/funasr_models
 funasr_models/
+
+############################## Solidity / Foundry ###############################
+# Foundry build artifacts
+meetingcontract/out/
+meetingcontract/cache/
+
+# Foundry dependencies (installed via forge install)
+meetingcontract/lib/
+
+# Foundry broadcast (deployment receipts)
+meetingcontract/broadcast/
+
+# Environment files (may contain private keys)
+meetingcontract/.env
