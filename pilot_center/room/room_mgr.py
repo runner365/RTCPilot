@@ -38,6 +38,7 @@ class RoomManager:
 
 	def __init__(self) -> None:
 		self._rooms: Dict[str, Room] = {}
+		self._room_tokens: Dict[str, str] = {}  # room_id -> room_token
 		self._lock = RLock()
 		# NOTE: session associations are stored on User and Room objects.
 		# RoomManager no longer keeps a separate user->session map.
@@ -50,6 +51,23 @@ class RoomManager:
 		with self._lock:
 			room = self.get_or_create_room(room_id)
 			return room.handle_join(user_id=user_id, user_name=user_name or "", audience=audience, session=session)
+
+	def register_room_token(self, room_id: str, room_token: str) -> None:
+		"""Register a room token for later validation."""
+		with self._lock:
+			self._room_tokens[room_id] = room_token
+
+	def validate_room_token(self, room_id: str, room_token: str) -> bool:
+		"""Validate that room_token matches the registered token for room_id.
+		Returns False if no token was registered for this room (roomId not created via API)."""
+		with self._lock:
+			expected = self._room_tokens.get(room_id)
+			if expected is None:
+				return False  # roomId not created through API, reject
+			if expected == room_token:
+				return True  # token matches, allow
+			self.log.warning("Invalid room token for roomId %s: expected %s, got %s", room_id, expected, room_token)
+			return False  # token does not match, reject
 
 	def handle_push_notification(self, data: dict, session: object) -> bool:
 		"""Handle a push notification from a user session."""

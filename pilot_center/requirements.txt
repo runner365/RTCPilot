@@ -6,3 +6,9 @@
 PyYAML>=6.0,<7.0
 
 websockets>=12.0,<13.0
+
+# Async PostgreSQL driver
+asyncpg>=0.29,<1.0
+
+# Ethereum signature verification (personal_sign)
+eth-account>=0.11,<1.0

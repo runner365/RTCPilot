@@ -38,10 +38,12 @@ class WsProtooServer:
 
     def __init__(self, options: ServerOptions, room_manager: object | None = None,
                  logger: Optional[logging.Logger] = None,
-                 msu_manager: object | None = None) -> None:
+                 msu_manager: object | None = None,
+                 sfu_manager: object | None = None) -> None:
         self.opts = options
         self.room_manager = room_manager
         self.msu_manager = msu_manager
+        self.sfu_manager = sfu_manager
         self.log = logger or logging.getLogger("ws_protoo_server")
         self._server: Optional[websockets.server.Serve] = None
         self._sessions: Set[WsProtooSession] = set()

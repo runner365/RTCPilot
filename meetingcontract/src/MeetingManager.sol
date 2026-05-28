@@ -50,6 +50,7 @@ contract MeetingManager is Ownable, ReentrancyGuard {
         require(creationFee_ > 0, "Creation fee must be greater than zero");
         meetingToken = IERC20(meetingToken_);
         creationFee = creationFee_;
+        _meetingCounter = 0;
     }
 
     function setCreationFee(uint256 newFee) external onlyOwner {
@@ -65,7 +66,7 @@ contract MeetingManager is Ownable, ReentrancyGuard {
         uint256 startTime,
         uint256 endTime,
         uint256 feePerAttendee
-    ) external returns (uint256 meetingId) {
+    ) external nonReentrant returns (uint256 meetingId) {
         require(bytes(name).length > 0, "Name must not be empty");
         require(endTime > startTime, "End time must be after start time");
         require(feePerAttendee > 0, "Fee per attendee must be greater than zero");

@@ -4,6 +4,7 @@
 #include "ws_message/ws_protoo_info.hpp"
 #include "webrtc_server.hpp"
 #include "utils/timeex.hpp"
+#include "config/config.hpp"
 
 namespace cpp_streamer {
 
@@ -109,6 +110,7 @@ bool RoomMgr::OnTimer() {
             json echo_data = json::object();
             echo_data["ts"] = now_millisec();
             echo_data["index"] = pilot_heartbeat_index_++;
+            echo_data["ws_url"] = Config::Instance().my_ws_url_;
             int id = pilot_client_->AsyncRequest("echo", echo_data, this);
             if (id > 0) {
                 id2ts_[id] = now_ts;
@@ -217,16 +219,20 @@ int RoomMgr::HandleJoinRequest(int id, json& j, ProtooResponseI* resp_cb) {
         std::string roomId = j["roomId"];
         std::string userId = j["userId"];
         std::string userName = j["userName"];
+        std::string roomToken;
+        if (j.contains("roomToken")) {
+            roomToken = j["roomToken"];
+        }
         bool audience = false;
         if (j.contains("audience")) {
             audience = j["audience"];
         }
 
-        LogInfof(logger_, "join request roomId:%s, userId:%s, userName:%s, audience:%s",
-            roomId.c_str(), userId.c_str(), userName.c_str(), BOOL2STRING(audience));
+        LogInfof(logger_, "join request roomId:%s, userId:%s, userName:%s, audience:%s, roomToken:%s",
+            roomId.c_str(), userId.c_str(), userName.c_str(), BOOL2STRING(audience), roomToken.c_str());
 		resp_cb->SetUserInfo(roomId, userId);
         auto room_ptr = GetOrCreateRoom(roomId);
-        int ret = room_ptr->UserJoin(userId, userName, audience,id, resp_cb);
+        int ret = room_ptr->UserJoin(userId, userName, audience, id, resp_cb, roomToken);
         if (ret < 0) {
             json resp_json = json::object();
             resp_json["message"] = "user join failed";

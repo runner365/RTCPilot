@@ -61,8 +61,11 @@ whip_server:
 downlink_discard_percent: 0
 uplink_discard_percent: 0
 
+# 向外暴露自己webrtc sfu服务的websocket链接方式
+my_ws_url: "ws://192.168.1.221:7443/webrtc"
+
 pilot_center:
-  enable: false
+  enable: true
   host: "192.168.1.221"
   port: 9443
   subpath: "/pilot/center"
@@ -75,7 +78,7 @@ rtc_relay:
   recv_discard_percent: 0
 
 voice_agent:
-  enable: true
+  enable: false
   agent_ip: "192.168.1.221"
   agent_port: 5555
   subpath: "/voiceagent"

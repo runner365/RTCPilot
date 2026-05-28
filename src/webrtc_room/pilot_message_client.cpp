@@ -47,6 +47,7 @@ void PilotMessageClient::AsyncConnect()
 														   true, /* ssl_enable */
 														   logger_,
 														   this);
+        LogInfof(logger_, "PilotMessageClient::AsyncConnect: host=%s, port=%d, subpath=%s", cfg_.host_.c_str(), cfg_.port_, cfg_.subpath_.c_str());
         ws_protoo_client_ptr_->AsyncConnect();
     } catch(const std::exception& e) {
         LogErrorf(logger_, "PilotMessageClient::AsyncConnect exception: %s", e.what());
@@ -68,7 +69,7 @@ int PilotMessageClient::AsyncRequest(const std::string& method, json& data_json,
 	try {
 		std::string payload = data_json.dump();
 		ws_protoo_client_ptr_->SendRequest(id, method, payload);
-		LogDebugf(logger_, "PilotMessageClient: Sent request id=%d method=%s", id, method.c_str());
+		LogInfof(logger_, "PilotMessageClient: Sent request id=%d method=%s", id, method.c_str());
 	} catch (const std::exception& e) {
         is_connected_ = false;
 		LogErrorf(logger_, "PilotMessageClient::AsyncRequest exception: %s", e.what());
@@ -112,7 +113,7 @@ void PilotMessageClient::OnResponse(const std::string& text)
 {
 	try {
 		json j = json::parse(text);
-		LogDebugf(logger_, "PilotMessageClient received response: %s", text.c_str());
+		LogInfof(logger_, "PilotMessageClient received response: %s", text.c_str());
         int id = j.value("id", -1);
         auto it = async_request_cbs_.find(id);
         if (it != async_request_cbs_.end()) {

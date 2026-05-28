@@ -12,18 +12,20 @@ class ProtooResponseI;
 class RtcUser
 {
 public:
-    RtcUser(const std::string& roomId, 
-        const std::string& user_id, 
-        const std::string& user_name, 
+    RtcUser(const std::string& roomId,
+        const std::string& user_id,
+        const std::string& user_name,
         bool audience,
         ProtooResponseI* resp_cb,
-        Logger* logger);
+        Logger* logger,
+        const std::string& room_token = "");
     ~RtcUser();
 
 public:
     std::string GetRoomId() { return room_id_; }
     std::string GetUserId() { return user_id_; }
     std::string GetUserName() { return user_name_; }
+    std::string GetRoomToken() { return room_token_; }
     bool IsRemote() { return is_remote_; }
     void SetRemote(bool is_remote) { is_remote_ = is_remote; }
     bool IsWhip() { return is_whip_; }
@@ -43,6 +45,7 @@ private:
     std::string room_id_;
     std::string user_id_;
     std::string user_name_;
+    std::string room_token_;
     bool audience_ = false;
     bool is_remote_ = false;
     bool is_whip_ = false;

@@ -5,3 +5,19 @@ websocket:
   listen_port: 9443
   cert_path: "../RTCPilot/certificate.crt"
   key_path: "../RTCPilot/private.key"
+  http_port: 9080
+
+database:
+  host: "127.0.0.1"
+  port: 5432
+  user: "pilot"
+  password: "pilot"
+  database: "pilot_center"
+
+meetingcontract:
+  meeting_token: "0x10f2594b8B8c166AC5C7F2B3cD0b5E92d74e2B4d"
+  uniswap_liquidity_setup: "0xAeE55f3E2927587144f1238C5F802EAd30b6689A"
+  meeting_manager: "0xe4a5cE3CE35bD31f75aad76339abB9d1c06C5014"
+
+ethereum:
+  rpc_url: "https://ethereum-sepolia.publicnode.com"

@@ -25,9 +25,16 @@ case "$1" in
             --broadcast \
             -vvvvv
         ;;
+    AddLiquidity)
+        forge script script/AddLiquidity.s.sol:AddLiquidityScript \
+            --rpc-url "$RPC_URL" \
+            --gas-limit "$GAS_LIMIT" \
+            --broadcast \
+            -vvvvv
+        ;;
     *)
         echo "Usage: $0 <ContractName>"
-        echo "Available contracts: MeetingToken UniswapLiquiditySetup MeetingManager"
+        echo "Available contracts: MeetingToken UniswapLiquiditySetup MeetingManager AddLiquidity"
         exit 1
         ;;
 esac

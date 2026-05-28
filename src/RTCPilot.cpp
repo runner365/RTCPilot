@@ -218,6 +218,7 @@ int main(int argc, char* argv[]) {
 
     try {
         std::cout << "server is running..." << std::endl;
+        std::cout << "log file: " << log_file << std::endl;
         uv_run(loop, UV_RUN_DEFAULT);
     } catch (const std::exception& e) {
         LogErrorf(logger.get(), "Exception in event loop: %s", e.what());

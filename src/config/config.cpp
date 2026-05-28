@@ -72,6 +72,9 @@ int Config::LoadConfig(const std::string& config_file) {
         if (config["uplink_discard_percent"]) {
             uplink_discard_percent_ = config["uplink_discard_percent"].as<uint32_t>();
         }
+        if (config["my_ws_url"]) {
+            my_ws_url_ = config["my_ws_url"].as<std::string>();
+        }
 
 		auto candidates_node = config["candidates"];
         if (candidates_node && candidates_node.IsSequence()) {
@@ -286,6 +289,8 @@ std::string Config::Dump() {
 
     dump_str += "downlink_discard_percent: " + std::to_string(downlink_discard_percent_) + "\n";
     dump_str += "uplink_discard_percent: " + std::to_string(uplink_discard_percent_) + "\n";
+    // 向外暴露自己webrtc sfu服务的websocket链接方式
+    dump_str += "my_ws_url: " + my_ws_url_ + "\n";
 
     if (pilot_center_cfg_.host_.empty() || pilot_center_cfg_.port_ == 0 || pilot_center_cfg_.subpath_.empty()) {
         dump_str += "pilot_center: null\n";

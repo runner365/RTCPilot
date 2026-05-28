@@ -9,7 +9,7 @@ contract MeetingManagerScript is Script {
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address meetingTokenAddr = vm.envAddress("MEETING_TOKEN_ADDRESS");
+        address meetingTokenAddr = address(0x10f2594b8B8c166AC5C7F2B3cD0b5E92d74e2B4d); // MeetingToken address, Sepolia testnet:0x10f2594b8B8c166AC5C7F2B3cD0b5E92d74e2B4d
 
         vm.startBroadcast(deployerPrivateKey);
         new MeetingManager(meetingTokenAddr, CREATION_FEE);

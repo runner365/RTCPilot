@@ -206,11 +206,12 @@ int Room::WhipUserJoin(const std::string& user_id, const std::string& user_name)
     return 0;
 }
 
-int Room::UserJoin(const std::string& user_id, 
+int Room::UserJoin(const std::string& user_id,
     const std::string& user_name,
     bool audience,
     int id,
-    ProtooResponseI* resp_cb) {
+    ProtooResponseI* resp_cb,
+    const std::string& room_token) {
     std::vector<std::shared_ptr<RtcUser>> user_list;
     if (closed_) {
         LogErrorf(logger_, "Room is closed, cannot join, room_id:%s", room_id_.c_str());
@@ -238,7 +239,7 @@ int Room::UserJoin(const std::string& user_id,
     } else {
         LogInfof(logger_, "New user joining room, user_id:%s, room_id:%s", 
             user_id.c_str(), room_id_.c_str());
-        new_user = std::make_shared<RtcUser>(room_id_, user_id, user_name, audience, resp_cb, logger_);
+        new_user = std::make_shared<RtcUser>(room_id_, user_id, user_name, audience, resp_cb, logger_, room_token);
         users_[user_id] = new_user;
     }
     if (g_rtc_event_log) {
@@ -1311,6 +1312,7 @@ void Room::Join2PilotCenter(std::shared_ptr<RtcUser> user_ptr) {
         join_data["userId"] = user_ptr->GetUserId();
         join_data["userName"] = user_ptr->GetUserName();
         join_data["audience"] = user_ptr->IsAudience();
+        join_data["roomToken"] = user_ptr->GetRoomToken();
         if (g_rtc_event_log) {
             json evt_data;
             evt_data["event"] = "join2PilotCenter";
@@ -2041,6 +2043,10 @@ RtpPacket* Room::GenRtpPacketFromOpusData(uint8_t* opus_data, size_t opus_data_l
 }
 
 void Room::OnSendVoiceAgentRtpPacket(int64_t now_ms) {
+    if (!Config::Instance().voice_agent_cfg_.enable_) {
+        return;
+    }
+
     try {
         VoiceAgentAiJoin();
     } catch (const std::exception& e) {

@@ -4,15 +4,17 @@
 using json = nlohmann::json;
 namespace cpp_streamer {
 
-RtcUser::RtcUser(const std::string& roomId, 
-    const std::string& user_id, 
-    const std::string& user_name, 
+RtcUser::RtcUser(const std::string& roomId,
+    const std::string& user_id,
+    const std::string& user_name,
     bool audience,
     ProtooResponseI* resp_cb,
-    Logger* logger)
-    : room_id_(roomId), 
+    Logger* logger,
+    const std::string& room_token)
+    : room_id_(roomId),
       user_id_(user_id),
-      user_name_(user_name), 
+      user_name_(user_name),
+      room_token_(room_token),
       resp_cb_(resp_cb),
       logger_(logger)
 {

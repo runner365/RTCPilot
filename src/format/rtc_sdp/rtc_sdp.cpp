@@ -195,8 +195,8 @@ std::shared_ptr<RtcSdp> RtcSdp::ParseSdp(const std::string& sdp_type, const std:
                             feature_str += " ";
                         }
                     }
+                    codec_iter->second->rtcp_features_.push_back(feature_str);
                 }
-                codec_iter->second->rtcp_features_.push_back(feature_str);
                 continue;
             }
             

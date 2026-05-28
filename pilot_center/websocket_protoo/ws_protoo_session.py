@@ -51,6 +51,7 @@ import websockets
 
 if TYPE_CHECKING:
     from ..msu.msg_mgr import MsuManager
+    from ..sfu.sfu_mgr import SfuManager
     # Imported only for type checking to avoid circular import at runtime
     from .ws_protoo_server import WsProtooServer
 
@@ -76,6 +77,7 @@ class WsProtooSession:
         self._pending_requests: Dict[int, asyncio.Future] = {}
         self.room_manager = room_manager
         self.msu_manager = msu_manager
+        self.sfu_manager: "SfuManager | None" = None
         # Log the remote peer address so operators can see which endpoint connected.
         # Message kept concise and consistent with other session logs.
         try:
@@ -148,6 +150,13 @@ class WsProtooSession:
                                     pass
                 except Exception:
                     pass
+            # clean up SFU registration if this session is an SFU service
+            sfu_mgr = getattr(self.server, "sfu_manager", None)
+            if sfu_mgr is not None:
+                try:
+                    sfu_mgr.remove_by_session(self)
+                except Exception:
+                    pass
             self.log.info("Session closed: %s", self.peer)
 
     async def _on_message(self, raw: Any) -> None:
@@ -186,10 +195,23 @@ class WsProtooSession:
             await self.send_response_error(req_id, 400, "Invalid method")
             return
 
+        self.log.info("Received request from %s: method=%s, data=%s", self.peer, method, data)
         try:
             if method == "echo":
-                # Echo back the data received
-                await self.send_response_ok(req_id, {"echo": data})
+                # SFU service heartbeat/register — create or update SFU instance
+                sfu_mgr = getattr(self.server, "sfu_manager", None)
+                if sfu_mgr is not None:
+                    ws_url = data.get("ws_url") if isinstance(data, dict) else None
+                    if not isinstance(ws_url, str) or not ws_url:
+                        await self.send_response_error(req_id, 400, "Missing ws_url in echo data")
+                        return
+                    sfu_mgr.add_or_update(self, ws_url)
+                    self.sfu_manager = sfu_mgr
+                    self.log.info("SFU registered/updated: %s", ws_url)
+                    await self.send_response_ok(req_id, {"registered": True, "ws_url": ws_url})
+                else:
+                    # No SFU manager configured — fallback to simple echo
+                    await self.send_response_ok(req_id, {"echo": data})
             elif method == "register":
                 self.log.info(f"register data: {data}")
                 msu_id = data.get("id") if isinstance(data, dict) else None
@@ -220,6 +242,7 @@ class WsProtooSession:
                 if not isinstance(audience, bool):
                     audience = False
 
+                roomToken = data.get("roomToken", "") if isinstance(data, dict) else ""
                 logging.info("User join request: roomId=%s, userId=%s, userName=%s, audience=%s", roomId, userId, userName, audience)
                 # integrate with RoomManager if available
                 rm = getattr(self.server, "room_manager", None)
@@ -228,6 +251,12 @@ class WsProtooSession:
                     self.log.debug("No room_manager configured on server; skipping room join bookkeeping")
                     await self.send_response_ok(req_id, {"joined": True})
                     return
+                # validate roomToken
+                if not rm.validate_room_token(roomId, roomToken):
+                    self.log.warning("join: invalid roomToken for roomId=%s", roomId)
+                    await self.send_response_error(req_id, 403, "Invalid roomToken")
+                    return
+                logging.info("join: valid roomToken=%s for roomId=%s", roomToken, roomId)
                 # validate inputs
                 if not isinstance(roomId, str) or not isinstance(userId, str):
                     await self.send_response_error(req_id, 400, "Invalid roomId or userId")

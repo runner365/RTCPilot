@@ -217,6 +217,10 @@ public:
     uint32_t uplink_discard_percent_ = 0;
 
 public:
+    // 向外暴露自己webrtc sfu服务的websocket链接方式
+    std::string my_ws_url_;
+
+public:
     VoiceAgentConfig voice_agent_cfg_;
 
 private:

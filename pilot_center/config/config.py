@@ -24,17 +24,34 @@ class Config:
 
     listen_ip: str
     listen_port: int
+    http_port: int
     cert_path: str
     key_path: str
+
+    # database
+    db_host: str
+    db_port: int
+    db_user: str
+    db_password: str
+    db_database: str
+
+    # ethereum
+    eth_rpc_url: str
+
+    # meeting contract addresses
+    meeting_token: str
+    uniswap_liquidity_setup: str
+    meeting_manager: str
 
     def __init__(self, yaml_path: str | Path) -> None:
         p = Path(yaml_path)
         data = self._load_yaml(p)
+
+        # --- websocket section ---
         ws = data.get("websocket")
         if not isinstance(ws, dict):
             raise SystemExit("Missing or invalid 'websocket' section in YAML")
 
-        # Required keys
         for k in ("listen_ip", "listen_port", "cert_path", "key_path"):
             if k not in ws:
                 raise SystemExit(f"Missing key in websocket section: {k}")
@@ -44,10 +61,53 @@ class Config:
             self.listen_port = int(ws.get("listen_port", 0))
         except Exception as e:
             raise SystemExit(f"Invalid listen_port: {ws.get('listen_port')}") from e
+        try:
+            self.http_port = int(ws.get("http_port", 9080))
+        except Exception as e:
+            raise SystemExit(f"Invalid http_port: {ws.get('http_port')}") from e
 
-        # Resolve cert/key relative to YAML file location if they are relative paths
         self.cert_path = self._resolve_path(p, ws.get("cert_path"))
         self.key_path = self._resolve_path(p, ws.get("key_path"))
+
+        # --- database section ---
+        db = data.get("database")
+        if not isinstance(db, dict):
+            raise SystemExit("Missing or invalid 'database' section in YAML")
+
+        for k in ("host", "port", "user", "password", "database"):
+            if k not in db:
+                raise SystemExit(f"Missing key in database section: {k}")
+
+        self.db_host = str(db.get("host", "127.0.0.1"))
+        try:
+            self.db_port = int(db.get("port", 5432))
+        except Exception as e:
+            raise SystemExit(f"Invalid db port: {db.get('port')}") from e
+        self.db_user = str(db.get("user", ""))
+        self.db_password = str(db.get("password", ""))
+        self.db_database = str(db.get("database", ""))
+
+        # --- ethereum section ---
+        eth = data.get("ethereum")
+        if not isinstance(eth, dict):
+            raise SystemExit("Missing or invalid 'ethereum' section in YAML")
+
+        if "rpc_url" not in eth:
+            raise SystemExit("Missing key in ethereum section: rpc_url")
+        self.eth_rpc_url = str(eth.get("rpc_url", ""))
+
+        # --- meetingcontract section ---
+        mc = data.get("meetingcontract")
+        if not isinstance(mc, dict):
+            raise SystemExit("Missing or invalid 'meetingcontract' section in YAML")
+
+        for k in ("meeting_token", "uniswap_liquidity_setup", "meeting_manager"):
+            if k not in mc:
+                raise SystemExit(f"Missing key in meetingcontract section: {k}")
+
+        self.meeting_token = str(mc.get("meeting_token", ""))
+        self.uniswap_liquidity_setup = str(mc.get("uniswap_liquidity_setup", ""))
+        self.meeting_manager = str(mc.get("meeting_manager", ""))
 
     @staticmethod
     def _ensure_yaml() -> None:

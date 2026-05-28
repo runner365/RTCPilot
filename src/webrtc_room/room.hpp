@@ -40,11 +40,12 @@ public:
     RTC_USER_TYPE GetUserType(const std::string& user_id);
     std::string GetRoomId() { return room_id_;}
     void Close();
-    int UserJoin(const std::string& user_id, 
+    int UserJoin(const std::string& user_id,
         const std::string& user_name,
         bool audience,
         int id,
-        ProtooResponseI* resp_cb);
+        ProtooResponseI* resp_cb,
+        const std::string& room_token = "");
     int WhipUserJoin(const std::string& user_id, 
         const std::string& user_name);
 	int UserLeave(const std::string& user_id);
