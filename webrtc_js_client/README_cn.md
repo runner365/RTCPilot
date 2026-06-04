@@ -53,6 +53,18 @@
 - 默认信令地址在 `src/App.vue` 的 `wsUrl` 常量，按实际服务器修改。
 - 如需自定义 ICE 服务器或媒体约束，可在构造 `PCWrap` 时传入 `iceServers`、`mediaConstraints`。
 
+## Web3 使用流程
+
+1. **连接钱包** — 使用 Web3 功能前，需先连接 Phantom 钱包。
+2. **购买 WebRTC Meeting Token** — 购买 ERC20 代币，用于创建或加入会议。
+3. **创建会议** — 创建者支付 Meeting Token 创建视频会议。
+4. **加入会议** — 与会者支付 Meeting Token 加入视频会议。
+5. **UniswapV3 兑换** — Token 购买基于 UniswapV3，支持：
+   - 注入 / 注销 Meeting Token 与 Ethereum 的流动性。
+   - Ethereum 兑换 Meeting Token。
+   - Meeting Token 兑换 Ethereum。
+   - 创建者提取 Ethereum。
+
 ## 常见问题
 - 无法获取摄像头/麦克风：检查浏览器权限或使用 https。
 - 推/拉流失败：确认信令地址、房间号、用户 ID/Name 与服务端配置一致。

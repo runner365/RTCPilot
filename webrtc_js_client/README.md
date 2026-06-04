@@ -53,13 +53,18 @@ Entry point: `src/main.ts` mounts `src/App.vue`; core logic lives in `src/peerCo
 - Default signaling URL is the `wsUrl` constant in `src/App.vue`; adjust to your server.
 - To customize ICE servers or media constraints, pass `iceServers` and `mediaConstraints` when constructing `PCWrap`.
 
+## Web3 Usage Flow
+
+1. **Connect wallet** — Before using Web3 features, connect your Phantom wallet.
+2. **Buy WebRTC Meeting Token** — Purchase the ERC20 token used for creating or joining meetings.
+3. **Create a meeting** — The creator pays Meeting Tokens to create a video conference.
+4. **Join a meeting** — Participants pay Meeting Tokens to join a video conference.
+5. **UniswapV3 swap** — Token purchases use UniswapV3, which supports:
+   - Injecting/removing liquidity for the Meeting Token / Ethereum pair.
+   - Swapping Ethereum → Meeting Token.
+   - Swapping Meeting Token → Ethereum.
+   - Withdrawing Ethereum by the creator.
+
 ## Troubleshooting
 - Cannot get camera/mic: check browser permissions or https origin.
 - Publish/subscribe fails: confirm signaling URL, room ID, and user ID/name match the server configuration.
-=======
-# Vue 3 + TypeScript + Vite
-
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
-
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
-
