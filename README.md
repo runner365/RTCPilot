@@ -17,8 +17,19 @@ RTCPilot is an open-source WebRTC SFU (Selective Forwarding Unit) implemented in
 - `3rdparty/`, `win_3rdparty/` — bundled third-party libraries and build helpers.
 
 ## WebRTC JS client
-- Open-source browser demo client: [https://github.com/runner365/webrtc_js_client](https://github.com/runner365/webrtc_js_client)
+- Open-source browser demo client: [pilot_center/](pilot_center/)
 
+## Web3 integration
+This project is an open-source WebRTC SFU server supporting WebRTC video conferencing.
+
+We use the Ethereum blockchain as the platform for video conferencing, covering:
+
+* **Create a meeting** — Creators connect their wallet, purchase WebRTC Meeting Tokens via UniswapV3, and pay the creation fee to start a video conference.
+* **Join a meeting** — Participants connect their wallet, purchase WebRTC Meeting Tokens via UniswapV3, and pay the entry fee to join a video conference.
+* **ERC20 token** — used for video conferencing payments. Meeting creators pay a small amount of meeting tokens to create a conference; participants pay meeting tokens to join.
+* **UniswapV3** — used for swapping ERC20 tokens to facilitate conference payments: provides Eth-to-ERC20 token exchange, ERC20 token-to-Eth exchange, adding liquidity for the meeting token with Eth, and removing token liquidity.
+
+For integration details see [web3dev.md](web3dev.md).
 
 For more details, see the `voice_agent` section in the configuration files: [config_guide.md](config_guide.md) (Chinese) and [config_guide_en.md](config_guide_en.md) (English).
 

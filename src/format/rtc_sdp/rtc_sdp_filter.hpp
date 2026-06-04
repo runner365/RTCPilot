@@ -47,6 +47,7 @@ public:
             if (codec_filter.media_type_ != media_type) {
                 continue;
             }
+            
             if (codec_filter.codec_.codec_name_ != input_codec->codec_name_) {
                 continue;
             }
@@ -97,7 +98,7 @@ public:
                 codec_filter.codec_.opus_fmtp_param_ != nullptr) {
                 if (input_codec->opus_fmtp_param_->minptime_ !=
                     codec_filter.codec_.opus_fmtp_param_->minptime_) {
-                    continue;
+                    //continue;
                 }
                 if (input_codec->opus_fmtp_param_->useinbandfec_ !=
                     codec_filter.codec_.opus_fmtp_param_->useinbandfec_) {

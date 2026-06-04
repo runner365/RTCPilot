@@ -2,6 +2,7 @@
 #include "webrtc_session.hpp"
 #include "net/stun/stun.hpp"
 #include <vector>
+#include <arpa/inet.h>
 
 namespace cpp_streamer {
 
@@ -45,18 +46,20 @@ void WebRtcServer::OnRead(const char* data, size_t data_size, UdpTuple address) 
 }
 
 bool WebRtcServer::OnTimer() {
-    std::vector<uint64_t> to_remove;
+    std::vector<uint64_t> addr_to_remove;
     std::vector<std::string> ufrag_remove;
 
-    for (auto kv : WebRtcServer::addr2sessions_) {
-        if (!kv.second->IsAlive()) {
-            LogInfof(logger_, "WebRtcServer remove inactive session:%s", kv.second->GetSessionId().c_str());
-            to_remove.push_back(kv.first);
-            ufrag_remove.push_back(kv.second->GetIceUfrag());
+    for (auto& kv : WebRtcServer::addr2sessions_) {
+        auto& session = kv.second;
+        if (!session->IsAlive()) {
+            LogInfof(logger_, "WebRtcServer remove inactive session:%s",
+                session->GetSessionId().c_str());
+            ufrag_remove.push_back(session->GetIceUfrag());
+            addr_to_remove.push_back(kv.first);
         }
     }
 
-    for (const auto& addr : to_remove) {
+    for (const auto& addr : addr_to_remove) {
         WebRtcServer::addr2sessions_.erase(addr);
     }
     for (const auto& ufrag : ufrag_remove) {
@@ -66,23 +69,21 @@ bool WebRtcServer::OnTimer() {
 }
 
 void WebRtcServer::RemoveSessionByRoomId(const std::string& room_id) {
-    std::vector<uint64_t> to_remove;
+    std::vector<uint64_t> addr_to_remove;
     std::vector<std::string> ufrag_remove;
 
-    for (auto it = WebRtcServer::addr2sessions_.begin(); it != WebRtcServer::addr2sessions_.end();) {
-        if (it->second->GetRoomId() == room_id) {
-            to_remove.push_back(it->first);
-            ufrag_remove.push_back(it->second->GetIceUfrag());
-            it = WebRtcServer::addr2sessions_.erase(it);
-        } else {
-            ++it;
+    for (auto& kv : WebRtcServer::addr2sessions_) {
+        auto& session = kv.second;
+        if (session->GetRoomId() == room_id) {
+            ufrag_remove.push_back(session->GetIceUfrag());
+            addr_to_remove.push_back(kv.first);
         }
+    }
+    for (const auto& addr : addr_to_remove) {
+        WebRtcServer::addr2sessions_.erase(addr);
     }
     for (const auto& ufrag : ufrag_remove) {
         WebRtcServer::username2sessions_.erase(ufrag);
-    }
-    for (const auto& addr : to_remove) {
-        WebRtcServer::addr2sessions_.erase(addr);
     }
 }
 
@@ -115,11 +116,12 @@ void WebRtcServer::HandleStunPacket(const uint8_t* data, size_t data_size, UdpTu
 void WebRtcServer::HandleNoneStunPacket(const uint8_t* data, size_t data_size, UdpTuple address) {
     auto addr_key = address.to_u64();
     auto it = WebRtcServer::addr2sessions_.find(addr_key);
-    if (it != WebRtcServer::addr2sessions_.end()) {
-        it->second->HandleNoneStunPacket(data, data_size, this, address);
-    } else {
+    if (it == WebRtcServer::addr2sessions_.end()) {
         LogErrorf(logger_, "no non-stun session found by addr:%llu", addr_key);
+        return;
     }
+
+    it->second->HandleNoneStunPacket(data, data_size, this, address);
 }
 
 void WebRtcServer::SetUserName2Session(const std::string& username, std::shared_ptr<WebRtcSession> session) {

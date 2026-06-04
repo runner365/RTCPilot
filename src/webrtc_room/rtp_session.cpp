@@ -24,7 +24,7 @@ std::vector<RtpSessionParam> GetRtpSessionParamsFromSdp(const RtcSdp& sdp) {
             } else if (ext_item.second->uri_ == "urn:ietf:params:rtp-hdrext:sdes:mid") {
                 param.mid_ext_id_ = ext_item.second->id_;
             } else if (ext_item.second->uri_ == "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time") {
-                
+                param.abs_send_time_ext_id_ = ext_item.second->id_;
             }
         }
         //read format/rtc_sdp/rtc_sdp.hpp for details and set parameters

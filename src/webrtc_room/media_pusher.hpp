@@ -41,6 +41,7 @@ public:
     MEDIA_PKT_TYPE GetMediaType() { return media_type_; }
     const RtpSessionParam& GetRtpSessionParam() { return param_; }
     void SetVoiceAgentCallback(VoiceAgentCallbackI* cb) { voice_agent_cb_ = cb; }
+    void UpdateSSRC(uint32_t new_ssrc);
 
 public:
     int HandleRtcpSrPacket(RtcpSrPacket* sr_pkt);
@@ -53,6 +54,9 @@ public://implement TransportSendCallbackI
 
 public:
     void OnTimer(int64_t now_ms);
+
+private:
+    std::shared_ptr<RtpRecvSession> GetRtpRecvSession(RtpPacket* rtp_pkt, bool& is_rtx);
 
 private:
     RtpSessionParam param_;
@@ -68,7 +72,7 @@ private:
 
 private:
     std::map<uint32_t, std::shared_ptr<RtpRecvSession>> ssrc2sessions_;
-    std::map<uint8_t, std::shared_ptr<RtpRecvSession>> rtxssrc2sessions_;
+    std::map<uint32_t, std::shared_ptr<RtpRecvSession>> rtxssrc2sessions_;
 
 private:
     MEDIA_PKT_TYPE media_type_ = MEDIA_UNKNOWN_TYPE;

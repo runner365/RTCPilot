@@ -166,13 +166,24 @@ std::shared_ptr<RtcSdp> RtcSdp::ParseSdp(const std::string& sdp_type, const std:
                 if (codec_name == "rtx") {
                     is_rtx = true;
                 }
-                std::shared_ptr<RtcSdpMediaCodec> codec_ptr = std::make_shared<RtcSdpMediaCodec>();
-                codec_ptr->codec_name_ = codec_name;
-                codec_ptr->is_rtx_ = is_rtx;
-                codec_ptr->payload_type_ = payload_type;
-                codec_ptr->rate_ = clock_rate;
-                codec_ptr->channel_ = channels;
-                current_media_section->media_codecs_[payload_type] = codec_ptr;
+                auto codec_iter = current_media_section->media_codecs_.find(payload_type);
+                if (codec_iter == current_media_section->media_codecs_.end()) {
+                    std::shared_ptr<RtcSdpMediaCodec> codec_ptr = std::make_shared<RtcSdpMediaCodec>();
+                    codec_ptr->codec_name_ = codec_name;
+                    codec_ptr->is_rtx_ = is_rtx;
+                    codec_ptr->payload_type_ = payload_type;
+                    codec_ptr->rate_ = clock_rate;
+                    codec_ptr->channel_ = channels;
+                    current_media_section->media_codecs_[payload_type] = codec_ptr;
+                    codec_iter = current_media_section->media_codecs_.find(payload_type);
+                } else {
+                    codec_iter->second->codec_name_ = codec_name;
+                    codec_iter->second->is_rtx_ = is_rtx;
+                    codec_iter->second->rate_ = clock_rate;
+                    codec_iter->second->channel_ = channels;
+                }
+
+                ParseFmtpLine(current_media_section, codec_iter->second, payload_type);
                 continue;
             }
             
@@ -187,6 +198,12 @@ std::shared_ptr<RtcSdp> RtcSdp::ParseSdp(const std::string& sdp_type, const std:
                 int payload_type = std::stoi(rtcp_fb_parts[0]);
 
                 auto codec_iter = current_media_section->media_codecs_.find(payload_type);
+                if (codec_iter == current_media_section->media_codecs_.end()) {
+                    std::shared_ptr<RtcSdpMediaCodec> codec_ptr = std::make_shared<RtcSdpMediaCodec>();
+                    codec_ptr->payload_type_ = payload_type;
+                    current_media_section->media_codecs_[payload_type] = codec_ptr;
+                    codec_iter = current_media_section->media_codecs_.find(payload_type);
+                }
                 std::string feature_str;
                 if (codec_iter != current_media_section->media_codecs_.end()) {
                     for (size_t i = 1; i < rtcp_fb_parts.size(); ++i) {
@@ -197,6 +214,7 @@ std::shared_ptr<RtcSdp> RtcSdp::ParseSdp(const std::string& sdp_type, const std:
                     }
                     codec_iter->second->rtcp_features_.push_back(feature_str);
                 }
+                ParseFmtpLine(current_media_section, codec_iter->second, payload_type);
                 continue;
             }
             
@@ -212,45 +230,14 @@ std::shared_ptr<RtcSdp> RtcSdp::ParseSdp(const std::string& sdp_type, const std:
                 std::string fmtp_param = fmtp_parts[1];
 
                 auto codec_iter = current_media_section->media_codecs_.find(payload_type);
-                if (codec_iter != current_media_section->media_codecs_.end()) {
-                    codec_iter->second->fmtp_param_ = fmtp_param;
-                    if (codec_iter->second->is_rtx_) {
-                        // RTX specific fmtp parsing can be added here
-                        StringSplit(fmtp_param, ";", fmtp_parts);
-
-                        for (const auto& param : fmtp_parts) {
-                            std::vector<std::string> key_value;
-                            int ret = StringSplit(param, "=", key_value);
-                            if (ret == 2 && key_value[0] == "apt") {
-                                int apt_payload_type = std::stoi(key_value[1]);
-                                
-                                auto apt_codec_iter = current_media_section->media_codecs_.find(apt_payload_type);
-                                if (apt_codec_iter != current_media_section->media_codecs_.end()) {
-                                    apt_codec_iter->second->rtx_payload_type_ = payload_type;
-                                }
-                            }
-                        }
-                    } else {
-                        // Non-RTX specific fmtp parsing can be added here
-                        // For example, parsing H264 fmtp parameters
-                        if (codec_iter->second->codec_name_ == "H264") {
-                            // Parse fmtp_param to fill h264_param fields
-                            codec_iter->second->GenH264FmtpParam();
-                        }
-                        if (codec_iter->second->codec_name_ == "AV1") {
-                            // Similar parsing for AV1CodecFmtpParam
-                            codec_iter->second->GenAV1FmtpParam();
-                        }
-                        if (codec_iter->second->codec_name_ == "VP9") {
-                            // Similar parsing for VP9CodecFmtpParam
-                            codec_iter->second->GenVP9FmtpParam();
-                        }
-                        if (codec_iter->second->codec_name_ == "opus") {
-                            // Similar parsing for OpusCodecFmtpParam
-                            codec_iter->second->GenOpusFmtpParam();
-                        }
-                    }
+                if (codec_iter == current_media_section->media_codecs_.end()) {
+                    std::shared_ptr<RtcSdpMediaCodec> codec_ptr = std::make_shared<RtcSdpMediaCodec>();
+                    codec_ptr->payload_type_ = payload_type;
+                    current_media_section->media_codecs_[payload_type] = codec_ptr;
+                    codec_iter = current_media_section->media_codecs_.find(payload_type);
                 }
+                codec_iter->second->fmtp_param_ = fmtp_param;
+                ParseFmtpLine(current_media_section, codec_iter->second, payload_type);
                 continue;
             }
         
@@ -403,6 +390,61 @@ std::string RtcSdp::DumpSdp() {
         ret_json["media_sections"] = media_array;
     }
     return ret_json.dump();
+}
+
+void RtcSdp::ParseFmtpLine(std::shared_ptr<RtcSdpMediaSection> current_media_section, 
+    std::shared_ptr<RtcSdpMediaCodec> codec_ptr, 
+    int payload_type) {
+    std::string fmtp_param = codec_ptr->fmtp_param_;
+
+    if (fmtp_param.empty()) {
+        return;
+    }
+    if (codec_ptr->fmtp_parsed_) {
+        return;
+    }
+
+    if (codec_ptr->is_rtx_) {
+        std::vector<std::string> fmtp_parts;
+        // RTX specific fmtp parsing can be added here
+        StringSplit(fmtp_param, ";", fmtp_parts);   
+        for (const auto& param : fmtp_parts) {
+            std::vector<std::string> key_value;
+            int ret = StringSplit(param, "=", key_value);
+            if (ret == 2 && key_value[0] == "apt") {
+                int apt_payload_type = std::stoi(key_value[1]);
+                
+                auto apt_codec_iter = current_media_section->media_codecs_.find(apt_payload_type);
+                if (apt_codec_iter != current_media_section->media_codecs_.end()) {
+                    apt_codec_iter->second->rtx_payload_type_ = payload_type;
+                }
+            }
+        }
+        codec_ptr->fmtp_parsed_ = true;
+        return;
+    }
+    // Non-RTX specific fmtp parsing can be added here
+    // For example, parsing H264 fmtp parameters
+    if (codec_ptr->codec_name_ == "H264") {
+        // Parse fmtp_param to fill h264_param fields
+        codec_ptr->GenH264FmtpParam();
+        codec_ptr->fmtp_parsed_ = true;
+    }
+    if (codec_ptr->codec_name_ == "AV1") {
+        // Similar parsing for AV1CodecFmtpParam
+        codec_ptr->GenAV1FmtpParam();
+        codec_ptr->fmtp_parsed_ = true;
+    }
+    if (codec_ptr->codec_name_ == "VP9") {
+        // Similar parsing for VP9CodecFmtpParam
+        codec_ptr->GenVP9FmtpParam();
+        codec_ptr->fmtp_parsed_ = true;
+    }
+    if (codec_ptr->codec_name_ == "opus") {
+        // Similar parsing for OpusCodecFmtpParam
+        codec_ptr->GenOpusFmtpParam();
+        codec_ptr->fmtp_parsed_ = true;
+    }
 }
 
 std::shared_ptr<RtcSdp> RtcSdp::GenAnswerSdp(

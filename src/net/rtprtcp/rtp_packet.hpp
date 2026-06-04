@@ -107,6 +107,7 @@ public:
     bool UpdateMid(uint8_t mid);
     bool UpdateMid(uint8_t new_mid_extern_id, uint8_t mid);
     bool ReadMid(uint8_t& mid);
+    bool ClearMidExtension(uint8_t mid_value, uint8_t& old_ext_id);
 
     bool ReadAbsTime(uint32_t& abs_time_24bits);
     bool UpdateAbsTime(uint32_t abs_time_24bits);

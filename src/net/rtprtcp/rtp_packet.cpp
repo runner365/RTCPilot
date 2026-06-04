@@ -343,7 +343,7 @@ uint8_t* RtpPacket::GetExtension(uint8_t id, uint8_t& len) {
         }
         return ext_data->value;
     } else {
-        LogErrorf(logger_, "the extension bytes type is wrong.");
+        // LogErrorf(logger_, "get extension bytes type is wrong.");
         return nullptr;
     }
 }
@@ -380,10 +380,10 @@ bool RtpPacket::UpdateMid(uint8_t new_mid_extern_id, uint8_t mid) {
         OnebyteExtension* ext_data = iter->second;
         len = ext_data->len + 1;
         extern_value = ext_data->value;
-        ext_data->id = mid;
+        ext_data->id = new_mid_extern_id;
 
         onebyte_ext_map_.erase(mid_extension_id_);
-        mid_extension_id_ = mid;
+        mid_extension_id_ = new_mid_extern_id;
         onebyte_ext_map_[mid_extension_id_] = ext_data;
     } else if (HasTwobytesExt(this->ext)) {
         auto iter = twobytes_ext_map_.find(mid_extension_id_);
@@ -398,12 +398,12 @@ bool RtpPacket::UpdateMid(uint8_t new_mid_extern_id, uint8_t mid) {
             return false;
         }
         extern_value = ext_data->value;
-        ext_data->id = mid;
+        ext_data->id = new_mid_extern_id;
         twobytes_ext_map_.erase(mid_extension_id_);
-        mid_extension_id_ = mid;
+        mid_extension_id_ = new_mid_extern_id;
         twobytes_ext_map_[mid_extension_id_] = ext_data;
     } else {
-        LogErrorf(logger_, "the extension bytes type is wrong.");
+        LogErrorf(logger_, "update mid, the extension bytes type is wrong, mid_extern_id:%d, mid:%d", mid_extension_id_, mid);
         return false;
     }
     std::string mid_str = std::to_string(mid);
@@ -418,13 +418,63 @@ bool RtpPacket::ReadMid(uint8_t& mid) {
     uint8_t* extern_value = GetExtension(this->mid_extension_id_, extern_len);
 
     if (extern_value == nullptr) {
-        LogErrorf(logger_, "read mid, The rtp packet has not extern mid:%d", this->mid_extension_id_);
+        //LogErrorf(logger_, "read mid, The rtp packet has not extern mid:%d", this->mid_extension_id_);
         return false;
     }
     std::string mid_str((char*)extern_value, extern_len);
     mid = (uint8_t)atoi(mid_str.c_str());
 
     return true;
+}
+
+bool RtpPacket::ClearMidExtension(uint8_t mid_value, uint8_t& old_ext_id) {
+    std::string mid_str = std::to_string(mid_value);
+
+    //mid_extension_id_ is the extern_id of mid extension，clear the mid extension id
+    mid_extension_id_ = 0;
+
+    if (HasOnebyteExt(this->ext)) {
+        uint8_t* ext_start = (uint8_t*)(this->ext) + 4;
+        uint8_t* ext_end = ext_start + GetExtLength(this->ext);
+
+        for (auto& item : onebyte_ext_map_) {
+            OnebyteExtension* ext_data = item.second;
+            std::string val((char*)ext_data->value, ext_data->len + 1);
+            if (val == mid_str) {
+                old_ext_id = item.first;
+                // One-byte element: header(1 byte) + value(len+1 bytes)
+                size_t total_len = (size_t)ext_data->len + 2;
+                uint8_t* ptr = (uint8_t*)ext_data;
+                if (ptr + total_len > ext_end) {
+                    return false;
+                }
+                memset(ptr, 0, total_len);
+                onebyte_ext_map_.erase(item.first);
+                return true;
+            }
+        }
+    } else if (HasTwobytesExt(this->ext)) {
+        uint8_t* ext_start = (uint8_t*)(this->ext) + 4;
+        uint8_t* ext_end = ext_start + GetExtLength(this->ext);
+
+        for (auto& item : twobytes_ext_map_) {
+            TwobytesExtension* ext_data = item.second;
+            std::string val((char*)ext_data->value, ext_data->len);
+            if (val == mid_str) {
+                old_ext_id = item.first;
+                // Two-byte element: id(1 byte) + len(1 byte) + value(len bytes)
+                size_t total_len = (size_t)ext_data->len + 2;
+                uint8_t* ptr = (uint8_t*)ext_data;
+                if (ptr + total_len > ext_end) {
+                    return false;
+                }
+                memset(ptr, 0, total_len);
+                twobytes_ext_map_.erase(item.first);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool RtpPacket::ReadAbsTime(uint32_t& abs_time_24bits) {
@@ -477,7 +527,7 @@ bool RtpPacket::UpdateAbsTimeExternId(uint8_t new_abs_time_extern_id) {
         abs_time_extension_id_ = new_abs_time_extern_id;
         twobytes_ext_map_[new_abs_time_extern_id] = ext_data;
     } else {
-        LogErrorf(logger_, "the extension bytes type is wrong.");
+        LogErrorf(logger_, "update abs time extern_id, the extension bytes type is wrong.");
         return false;
     }
 
@@ -548,7 +598,7 @@ bool RtpPacket::UpdateWideSeqExternId(uint8_t new_wide_seq_extern_id) {
         tcc_extension_id_ = new_wide_seq_extern_id;
         twobytes_ext_map_[new_wide_seq_extern_id] = ext_data;
     } else {
-        LogErrorf(logger_, "the extension bytes type is wrong.");
+        LogErrorf(logger_, "update wide seq extern_id, the extension bytes type is wrong.");
         return false;
     }
     return true;
@@ -600,7 +650,7 @@ bool RtpPacket::UpdateExtensionLength(uint8_t id, uint8_t len) {
         }
         extension->len = len;
     } else {
-        LogErrorf(logger_, "the extension bytes type is wrong.");
+        LogErrorf(logger_, "update extension length, id:%d, the extension bytes type is wrong.", id);
         return false;
     }
     return true;

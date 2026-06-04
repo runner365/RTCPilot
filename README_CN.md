@@ -16,7 +16,19 @@ RTCPilot 是一个使用现代 C++ 实现的开源 WebRTC SFU（Selective Forwar
 - `3rdparty/`, `win_3rdparty/` — 第三方依赖和平台相关构建辅助文件。
 
 ## WebRTC JS 客户端
-- 浏览器端开源示例：[https://github.com/runner365/webrtc_js_client](https://github.com/runner365/webrtc_js_client)
+- 浏览器端开源示例：[pilot_center/](pilot_center/)
+
+## Web3 集成
+本工程是一个开源 WebRTC SFU 服务端，支持 WebRTC 视频会议功能。
+
+我们将 Ethereum 区块链作为视频会议的平台，覆盖以下场景：
+
+* **创建会议** — 创建人需连接钱包，通过 UniswapV3 购买 WebRTC Meeting Token，支付创建会议的费用后，方可创建视频会议。
+* **加入会议** — 与会人需连接钱包，通过 UniswapV3 购买 WebRTC Meeting Token，支付参与会议的费用后，方可加入视频会议。
+* **ERC20 代币** — 用于支付视频会议费用。会议创建人支付少量会议 Token 创建会议；与会人支付会议 Token 加入会议。
+* **UniswapV3** — 用于交换 ERC20 代币，实现会议费用支付：提供 Eth 到 ERC20 代币的兑换服务、ERC20 代币到 Eth 的兑换服务、会议 Token 与 Eth 的流动性添加与移除。
+
+集成细节请参考 [web3dev.md](web3dev.md)。
 
 ## 支持的平台与构建方式
 ### Windows 11（Visual Studio）

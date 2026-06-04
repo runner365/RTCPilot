@@ -227,4 +227,8 @@ void RtpRecvSession::GetLostStatics() {
     return;
 }
 
+void RtpRecvSession::UpdateSSRC(uint32_t new_ssrc) {
+    param_.ssrc_ = new_ssrc;
+}
+
 } // namespace cpp_streamer

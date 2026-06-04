@@ -54,28 +54,22 @@ void MediaPuller::OnTransportSendRtp(RtpPacket* in_pkt) {
         }
     }
     RtpPacket* rtp_pkt = in_pkt;
-    if (param_.mid_ext_id_ > 0 && param_.mid_ >= 0) {
-        uint8_t old_extern_id = rtp_pkt->GetMidExtensionId();
-        bool r1 = rtp_pkt->UpdateMid(param_.mid_ext_id_, param_.mid_);
-        if (!r1) {
-            LogDebugf(logger_, "puller update mid error, new extern_id:%d, old extern_id:%d mid:%d", 
-                param_.mid_ext_id_, old_extern_id, param_.mid_);
+    if (rtp_pkt->HasExtension()) {
+        if (param_.tcc_ext_id_ > 0) {
+            auto tcc_seq_extern_id = rtp_pkt->GetTccExtensionId();
+            bool r1 = rtp_pkt->UpdateWideSeqExternId(param_.tcc_ext_id_);
+            if (!r1) {
+                LogErrorf(logger_, "puller update tcc extern id error, new extern_id:%d, old extern_id:%d",
+                    param_.tcc_ext_id_, tcc_seq_extern_id);
+            }
         }
-    }
-    if (param_.tcc_ext_id_ > 0) {
-        auto tcc_seq_extern_id = rtp_pkt->GetTccExtensionId();
-        bool r1 = rtp_pkt->UpdateWideSeqExternId(param_.tcc_ext_id_);
-        if (!r1) {
-            LogDebugf(logger_, "puller update tcc extern id error, new extern_id:%d, old extern_id:%d",
-                param_.tcc_ext_id_, tcc_seq_extern_id);
-        }
-    }
-    if (param_.abs_send_time_ext_id_ > 0) {
-        auto old_abs_send_time_ext_id = rtp_pkt->GetAbsTimeExtensionId();
-        bool r1 = rtp_pkt->UpdateAbsTimeExternId(param_.abs_send_time_ext_id_);
-        if (!r1) {
-            LogErrorf(logger_, "puller update abs time extern id error, new extern_id:%d, old extern_id:%d",
-                param_.abs_send_time_ext_id_, old_abs_send_time_ext_id);
+        if (param_.abs_send_time_ext_id_ > 0) {
+            auto old_abs_send_time_ext_id = rtp_pkt->GetAbsTimeExtensionId();
+            bool r1 = rtp_pkt->UpdateAbsTimeExternId(param_.abs_send_time_ext_id_);
+            if (!r1) {
+                LogErrorf(logger_, "puller update abs time extern id error, new extern_id:%d, old extern_id:%d",
+                    param_.abs_send_time_ext_id_, old_abs_send_time_ext_id);
+            }
         }
     }
 
@@ -83,12 +77,16 @@ void MediaPuller::OnTransportSendRtp(RtpPacket* in_pkt) {
     if (!r) {
         return;
     }
+
     int origin_payload_type = rtp_pkt->GetPayloadType();
+    uint32_t origin_ssrc = rtp_pkt->GetSsrc();
     // modify payload type to puller's payload type
     rtp_pkt->SetPayloadType(param_.payload_type_);
+    rtp_pkt->SetSsrc(param_.ssrc_);
     cb_->OnTransportSendRtp(rtp_pkt->GetData(), rtp_pkt->GetDataLength());
     // restore payload type
     rtp_pkt->SetPayloadType(origin_payload_type);
+    rtp_pkt->SetSsrc(origin_ssrc);
 }
 
 void MediaPuller::OnTimer(int64_t now_ms) {

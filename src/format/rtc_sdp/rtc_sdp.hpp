@@ -62,6 +62,10 @@ public:
     std::string GenSdpString(bool ice_info_session_level = false);
     std::string GenAudioSdpString(std::shared_ptr<RtcSdpMediaSection> audio_section_ptr, bool ice_info_session_level = false);
     std::string GenVideoSdpString(std::shared_ptr<RtcSdpMediaSection> video_section_ptr, bool ice_info_session_level = false);
+
+private:
+    static void ParseFmtpLine(std::shared_ptr<RtcSdpMediaSection> current_media_section, 
+        std::shared_ptr<RtcSdpMediaCodec> codec_ptr, int payload_type);
 };
 }
 #endif // RTC_SDP_HPP

@@ -110,6 +110,7 @@ private:
 private:
     //main ssrc and rtx ssrc mapping for pusher
     std::map<uint32_t, std::shared_ptr<MediaPusher>> ssrc2media_pusher_;
+    std::map<int, std::shared_ptr<MediaPusher>> mid2media_pusher_;
 
 private:
     //main ssrc and rtx ssrc mapping for puller

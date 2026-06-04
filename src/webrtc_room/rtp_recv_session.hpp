@@ -25,6 +25,7 @@ public:
 
 public:
     int HandleRtcpSrPacket(RtcpSrPacket* sr_pkt);
+    void UpdateSSRC(uint32_t new_ssrc);
 
 public:
     StreamStatics& GetRecvStatics() { return recv_statics_; }

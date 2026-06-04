@@ -1,33 +1,35 @@
-# Web3 开发
-本工程是一个WebRTC SFU服务端的开源，用于支持WebRTC的视频会议功能。
+# Web3 Development
 
-我们将Web3 etherum 作为视频会议的区块链平台，对于：
-* 开启视频会议--会议创建人(如表演者，教学者等角色)
-* 加入视频会议--会议加入人(如观众，学生等角色)
-* ERC20 代币--用于支付视频会议费用, 会议创建人支付少量的会议token用于创建会议；与会人支付会议token用于参见视频会议费用。
-* UniswapV3 用于交换ERC20代币，实现视频会议费用的支付: 提供Eth到ERC20代币的兑换服务; 提供ERC20代币到Eth的兑换服务; 当然提供加入Token与Eth的流动性; 消除Token的流动性；
+This project is an open-source WebRTC SFU server supporting WebRTC video conferencing.
 
-## 会议创建
-* 会议创建人需要用Eth购买会议token。(通过UniswapV3交换: Eth -> 会议token。)
-* 会议创建人需要支付少量的会议token，用于创建视频会议。
-* 会议创建人需要指定会议的名称、描述、开始时间、结束时间等参数。
-* 会议创建人可以设定会议的费用，单位为会议token。每一个参加会议的听众，入会时需要支付会议token。
+We use the Ethereum blockchain as the platform for video conferencing, covering:
 
+* **Create a meeting** — meeting creators (e.g., performers, instructors)
+* **Join a meeting** — meeting participants (e.g., audience, students)
+* **ERC20 token** — used for video conferencing payments. Meeting creators pay a small amount of meeting tokens to create a conference; participants pay meeting tokens to join.
+* **UniswapV3** — used for swapping ERC20 tokens to facilitate conference payments: provides Eth-to-ERC20 token exchange, ERC20 token-to-Eth exchange, adding liquidity for the meeting token with Eth, and removing token liquidity.
 
-## 会议加入
-* 会议与会人需要用Eth购买会议token。(通过UniswapV3交换: Eth -> 会议token。)
-* 会议加入人需要支付会议token用于参见视频会议费用。
+## Create a meeting
+* Meeting creators need to purchase meeting tokens with Eth (via UniswapV3 swap: Eth → meeting token).
+* Meeting creators pay a small amount of meeting tokens to create a video conference.
+* Meeting creators specify the meeting name, description, start time, end time, and other parameters.
+* Meeting creators can set a meeting fee in meeting tokens. Each participant pays meeting tokens when joining.
 
-## ERC20 代币
-我们将会议token实现为一个ERC20代币，命名为MeetingToken。会议token具有以下特点：
-* 会议token是一个可替代的代币，可以在UniswapV3上进行交易。
-* 会议token的总供应量是通过ERC20合约进行初始化，设定totalSupply。
-* 会议token的持有者可以通过ERC20合约进行转账、查询余额等操作。
+## Join a meeting
+* Meeting participants need to purchase meeting tokens with Eth (via UniswapV3 swap: Eth → meeting token).
+* Meeting participants pay meeting tokens to join the video conference.
 
-## uniswapV3 交换
-我们将UniswapV3作为会议token的交换平台，提供以下功能：
-* 提供Eth到会议token的兑换服务。
-* 提供会议token到Eth的兑换服务。
-* 提供加入会议token与Eth的流动性。
-* 消除会议token的流动性。
+## ERC20 token
+We implement the meeting token as an ERC20 token named **MeetingToken**, with the following characteristics:
 
+* MeetingToken is a fungible token that can be traded on UniswapV3.
+* The total supply of MeetingToken is initialized via the ERC20 contract with a configured `totalSupply`.
+* MeetingToken holders can transfer tokens and query balances through the ERC20 contract.
+
+## UniswapV3 swap
+We use UniswapV3 as the exchange platform for MeetingToken, providing the following functionality:
+
+* Provide Eth-to-MeetingToken exchange.
+* Provide MeetingToken-to-Eth exchange.
+* Provide liquidity for the MeetingToken/Eth pair.
+* Remove liquidity for the MeetingToken.

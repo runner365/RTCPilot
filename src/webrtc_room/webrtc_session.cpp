@@ -251,13 +251,32 @@ int WebRtcSession::HandleRtpPacket(const uint8_t* data, size_t len, UdpTuple add
         tcc_server_->InsertRtpPacket(rtp_pkt);
 
         auto it = ssrc2media_pusher_.find(ssrc);
+        std::shared_ptr<MediaPusher> media_pusher = nullptr;
         if (it == ssrc2media_pusher_.end()) {
-            LogErrorf(logger_, "No MediaPusher for RTP, room_id:%s, user_id:%s, session_id:%s, ssrc:%u",
-                room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), ssrc);
-            delete rtp_pkt;
-            return -1;
+            uint8_t mid = 0;
+            bool r = rtp_pkt->ReadMid(mid);
+            if (!r) {
+                LogErrorf(logger_, "RTP packet without mid, room_id:%s, user_id:%s, session_id:%s, ssrc:%u",
+                    room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), ssrc);
+                delete rtp_pkt;
+                return -1;
+            }
+            auto mid_it = mid2media_pusher_.find(mid);
+            if (mid_it == mid2media_pusher_.end()) {
+                LogErrorf(logger_, "No MediaPusher for RTP by mid, room_id:%s, user_id:%s, session_id:%s, ssrc:%u, mid:%u",
+                    room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), ssrc, mid);
+                delete rtp_pkt;
+                return -1;
+            }
+            LogInfof(logger_, "Find MediaPusher for RTP by mid, room_id:%s, user_id:%s, session_id:%s, ssrc:%u, mid:%u",
+                room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), ssrc, mid);
+            ssrc2media_pusher_[ssrc] = mid_it->second;
+            media_pusher = mid_it->second;
+            media_pusher->UpdateSSRC(ssrc);
+        } else {
+            media_pusher = it->second;
         }
-        int ret = it->second->HandleRtpPacket(rtp_pkt);
+        int ret = media_pusher->HandleRtpPacket(rtp_pkt);
         if (ret < 0) {
             LogErrorf(logger_, "MediaPusher HandleRtpPacket failed, room_id:%s, user_id:%s, session_id:%s, ssrc:%u",
                 room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), ssrc);
@@ -371,8 +390,7 @@ void WebRtcSession::OnTransportSendRtp(uint8_t* data, size_t sent_size) {
     if (!dtls_connected_) {
         return;
     }
-    LogDebugf(logger_, "OnTransportSendRtp, room_id:%s, user_id:%s, session_id:%s, len:%zu",
-        room_id_.c_str(), user_id_.c_str(), session_id_.c_str(), sent_size);
+
     if (!srtp_send_session_) {
         LogErrorf(logger_, "SRTP not established (RTP send), room_id:%s, user_id:%s, session_id:%s",
             room_id_.c_str(), user_id_.c_str(), session_id_.c_str());
@@ -426,6 +444,7 @@ int WebRtcSession::AddPusherRtpSession(const RtpSessionParam& param, std::string
         media_pusher->CreateRtpRecvSession();
         pusher_id = media_pusher->GetPusherId();
         ssrc2media_pusher_[param.ssrc_] = media_pusher;
+        mid2media_pusher_[param.mid_] = media_pusher;
         if (param.rtx_ssrc_ != 0) {
             ssrc2media_pusher_[param.rtx_ssrc_] = media_pusher;
         }

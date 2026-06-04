@@ -63,12 +63,10 @@ public:
         // level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
         std::vector<std::string> fmtp_parts_;
         int ret = StringSplit(fmtp_param_, ";", fmtp_parts_);
-
         if (ret <= 0 || fmtp_parts_.empty()) {
             return -1;
         }
         h264_fmtp_param_ = std::make_shared<H264CodecFmtpParam>();
-
         for (auto part : fmtp_parts_) {
             std::vector<std::string> key_value;
             ret = StringSplit(part, "=", key_value);
@@ -175,6 +173,7 @@ public:
     int channel_ = 0;
     std::vector<std::string> rtcp_features_;
     std::string fmtp_param_;
+    bool fmtp_parsed_ = false;
 
     std::shared_ptr<H264CodecFmtpParam> h264_fmtp_param_ = nullptr;
     std::shared_ptr<AV1CodecFmtpParam> av1_fmtp_param_ = nullptr;
